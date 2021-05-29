@@ -15,12 +15,12 @@ type SingleCard struct {
 	pattern CardsPattern
 }
 
-func NewSingleCard(card *c.Card) *SingleCard {
-	if !IsValidSingle(card) {
+func NewSingleCard(cards ...*c.Card) *SingleCard {
+	if !IsValidSingle(cards...) {
 		return nil
 	}
 	return &SingleCard{
-		cards:   []*c.Card{card},
+		cards:   cards,
 		pattern: SinglePattren,
 	}
 }

@@ -19,7 +19,7 @@ func NewCardsBoot() *CardsBoot {
 }
 
 // 创建牌
-func (t *CardsBoot) Init() {
+func (t *CardsBoot) Init() *CardsBoot {
 	cur := 0
 	// 装入一般牌
 	for _, v := range cardValue {
@@ -32,6 +32,7 @@ func (t *CardsBoot) Init() {
 	// 装入特殊牌
 	t.list[cur] = NewCard("Jack", Freak)
 	t.list[cur+1] = NewCard("Jack", Real)
+	return t
 }
 
 // 展示卡牌
@@ -88,4 +89,12 @@ func (t *CardsBootIterator) Next() (card *Card) {
 
 func (t *CardsBootIterator) HasNext() bool {
 	return t.boot.getCard(t.cur) != nil
+}
+
+// 是否还剩 ? 张牌
+func (t *CardsBootIterator) HasLastByNum(num int) bool {
+	if t.cur+num == 54 {
+		return true
+	}
+	return false
 }

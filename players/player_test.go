@@ -7,7 +7,7 @@ import (
 )
 
 func TestDealCards(t *testing.T) {
-	p := NewPlayer()
+	p := NewPlayer("Kenny")
 	cardsList := []*cards.Card{
 		cards.NewCard("3", cards.Spade),
 		cards.NewCard("4", cards.Spade),

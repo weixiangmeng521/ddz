@@ -1,20 +1,11 @@
 package games
 
-import (
-	"ddz/cards"
-	"ddz/players"
-)
+import "ddz/flow"
 
-type Game struct {
-	cardsBoot *cards.CardsBoot
-	players   [3]*players.Player
-	lordCards []*cards.Card
-}
-
-func NewGame() *Game {
-	return &Game{
-		cardsBoot: cards.NewCardsBoot(),
-		players:   [3]*players.Player{},
-		lordCards: []*cards.Card{},
-	}
+// 开始游戏
+func Start() {
+	g := NewGame()
+	flow := flow.NewFlow(g)
+	flow.Reset()
+	flow.Start()
 }
