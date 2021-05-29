@@ -1,4 +1,4 @@
-package ddz
+package app
 
 func main() {
 
