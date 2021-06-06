@@ -1,6 +1,9 @@
 package compare
 
-import c "ddz/app/cards"
+import (
+	c "ddz/app/cards"
+	"ddz/app/constant"
+)
 
 // 是不是合法的三带一
 var IsValidThreeBeltTwoCards = func(cards ...*c.Card) bool {
@@ -22,7 +25,7 @@ var IsValidThreeBeltTwoCards = func(cards ...*c.Card) bool {
 // 三带二
 type ThreeBeltTwoCards struct {
 	cards   []*c.Card
-	pattern CardsPattern
+	pattern constant.CardsPattern
 }
 
 func NewThreeBeltTwoCards(cards ...*c.Card) *ThreeBeltTwoCards {
@@ -31,7 +34,7 @@ func NewThreeBeltTwoCards(cards ...*c.Card) *ThreeBeltTwoCards {
 	}
 	return &ThreeBeltTwoCards{
 		cards:   MostSort(cards),
-		pattern: ThreeBeltTwoCardsPattern,
+		pattern: constant.ThreeBeltTwoCardsPattern,
 	}
 }
 
@@ -39,16 +42,24 @@ func (t *ThreeBeltTwoCards) GetCards() []*c.Card {
 	return t.cards
 }
 
-func (t *ThreeBeltTwoCards) GetPattern() CardsPattern {
+func (t *ThreeBeltTwoCards) GetPattern() constant.CardsPattern {
 	return t.pattern
 }
 
-func (t *ThreeBeltTwoCards) IsSamePattern(ci CardsCompareInterface) bool {
+func (t *ThreeBeltTwoCards) IsSamePattern(ci constant.CardsCompareInterface) bool {
 	return t.GetPattern() == ci.GetPattern()
 }
 
 // 三带二比较大小
-func (t *ThreeBeltTwoCards) IsGreater(ci CardsCompareInterface) bool {
+func (t *ThreeBeltTwoCards) IsGreater(ci constant.CardsCompareInterface) bool {
+	if len(ci.GetCards()) == 0 { // for any pattern
+		return true
+	}
+
+	if ci.GetPattern() == constant.BoomCardsPattern {
+		return false
+	}
+
 	cur := getSize(t.cards[0].Value)
 	tar := getSize(ci.GetCards()[0].Value)
 	if cur == -1 || tar == -1 {

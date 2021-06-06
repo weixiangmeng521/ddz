@@ -2,6 +2,7 @@ package compare
 
 import (
 	c "ddz/app/cards"
+	"ddz/app/constant"
 )
 
 // 三顺
@@ -37,7 +38,7 @@ var IsValidStraightThree = func(cards ...*c.Card) bool {
 
 type StraightThreeCards struct {
 	cards   []*c.Card
-	pattern CardsPattern
+	pattern constant.CardsPattern
 }
 
 func NewStraightThreeCards(cards ...*c.Card) *StraightThreeCards {
@@ -46,7 +47,7 @@ func NewStraightThreeCards(cards ...*c.Card) *StraightThreeCards {
 	}
 	return &StraightThreeCards{
 		cards:   MostSort(cards),
-		pattern: StraightThreeCardsPattern,
+		pattern: constant.StraightThreeCardsPattern,
 	}
 }
 
@@ -54,11 +55,11 @@ func (t *StraightThreeCards) GetCards() []*c.Card {
 	return t.cards
 }
 
-func (t *StraightThreeCards) GetPattern() CardsPattern {
+func (t *StraightThreeCards) GetPattern() constant.CardsPattern {
 	return t.pattern
 }
 
-func (t *StraightThreeCards) IsSamePattern(ci CardsCompareInterface) bool {
+func (t *StraightThreeCards) IsSamePattern(ci constant.CardsCompareInterface) bool {
 	if t.GetPattern() != ci.GetPattern() { // 是不是姊妹对
 		return false
 	}
@@ -68,7 +69,15 @@ func (t *StraightThreeCards) IsSamePattern(ci CardsCompareInterface) bool {
 	return true
 }
 
-func (t *StraightThreeCards) IsGreater(ci CardsCompareInterface) bool {
+func (t *StraightThreeCards) IsGreater(ci constant.CardsCompareInterface) bool {
+	if len(ci.GetCards()) == 0 { // for any pattern
+		return true
+	}
+
+	if ci.GetPattern() == constant.BoomCardsPattern {
+		return false
+	}
+
 	cur := getSize(t.GetCards()[0].Value)
 	tar := getSize(ci.GetCards()[0].Value)
 	if cur == -1 || tar == -1 {

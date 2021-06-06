@@ -4,75 +4,173 @@ import (
 	"ddz/app/cards"
 	"ddz/app/compare"
 	"ddz/app/constant"
+	"ddz/app/scene"
 	"errors"
 	"fmt"
 	"math/rand"
+	"sync"
 	"time"
 )
 
-// 游戏状态
-type GameState int8
-
-const (
-	Ready   GameState = 0
-	Started GameState = 1
-	End     GameState = 3
-)
-
 type Game struct {
-	cardsBoot  *cards.CardsBoot // 牌靴
-	players    []constant.PlayerInterface
-	lordCards  []*cards.Card
-	curPattern compare.CardsPattern          // 当前局的行牌模式
-	curCards   compare.CardsCompareInterface // 当前的局面的牌
-	curIndex   int8                          // 当前进行的玩家index
-	state      GameState
+	name          string
+	cardsBoot     *cards.CardsBoot                                 // 牌靴
+	players       []constant.PlayerInterface                       // 游戏玩家
+	lordCards     []*cards.Card                                    // 地主的牌
+	curCards      constant.CardsCompareInterface                   // 当前的局面的牌
+	curIndex      int8                                             // 当前进行的玩家index
+	state         constant.GameState                               // 当前游戏状态
+	flow          *scene.SceneFlow                                 // 游戏进行流程
+	hooks         map[constant.GameHookType][]func(...interface{}) // 钩子
+	isCalledLoard bool                                             // 是否叫完地主
+	isSortCards   bool                                             // 是否洗牌
+	debug         bool                                             // 设置debug模式
+
+	sync.Mutex  // 锁
+	scene.Hooks // 钩子
 }
 
-func NewGame() *Game {
-	return &Game{
-		cardsBoot:  cards.NewCardsBoot(),
-		players:    []constant.PlayerInterface{},
-		lordCards:  []*cards.Card{},
-		curIndex:   0,
-		state:      Ready,
-		curPattern: compare.NullPattern,
+func NewGame(name string) (g *Game) {
+	g = &Game{
+		name:          name,
+		cardsBoot:     cards.NewCardsBoot(),
+		players:       []constant.PlayerInterface{},
+		lordCards:     []*cards.Card{},
+		curIndex:      0,
+		curCards:      compare.NewAnyCards(),
+		debug:         false,
+		isCalledLoard: false,
+		state:         constant.GameReady,
+		hooks:         map[constant.GameHookType][]func(...interface{}){},
+		isSortCards:   false,
 	}
+	// 创建游戏，直接进入flow
+	g.flow = scene.CreateSceneFlow(g)
+	return
+}
+
+// 设置游戏名称
+func (t *Game) SetName(name string) {
+	t.name = name
+}
+
+// 获取房间名称
+func (t *Game) GetName() string {
+	return t.name
+}
+
+// 设置debug模式
+func (t *Game) Debug() {
+	t.cardsBoot = GetDebugCardsBoot()
+	t.debug = true
+}
+
+// 设置状态
+func (t *Game) SetState(state constant.GameState) {
+	t.state = state
+	t.Trigger(constant.GAME_STATE_CHANGED, state)
+}
+
+// 获取当前的状态
+func (t *Game) GetState() constant.GameState {
+	return t.state
+}
+
+// 获取当前的牌信息
+func (t *Game) GetCards() constant.CardsCompareInterface {
+	return t.curCards
+}
+
+// 获取当前场上的牌
+func (t *Game) GetPlayedCards() []*cards.Card {
+	if t.curCards == nil {
+		return nil
+	}
+	return t.curCards.GetCards()
+}
+
+// 获取地主牌
+func (t *Game) GetLordCards() []*cards.Card {
+	return t.lordCards
 }
 
 // 游戏加入玩家
 func (t *Game) JoinPlayer(p constant.PlayerInterface) bool {
+	t.Lock()
+	defer t.Unlock()
 	// 如果游戏人数满了，就加入失败
 	if len(t.players) == 3 {
 		return false
 	}
+	// 相同id 不能同时加入
+	for _, v := range t.players {
+		if v.GetName() == p.GetName() {
+			return false
+		}
+	}
+	// 给玩家写入房间信息
+	p.SetGame(t)
+
 	t.players = append(t.players, p)
+	// 给加入的玩家添加钩子
+	t.hookPlayer(p)
+	// 触发钩子
+	t.Trigger(constant.GAME_JOINED_PLYAER)
 	return true
 }
 
 // 游戏离开玩家
 func (t *Game) LeavePlayer(p constant.PlayerInterface) {
+	t.Lock()
+	defer t.Unlock()
 	for i, v := range t.players {
 		if v.GetName() == p.GetName() {
 			t.players = append(t.players[:i], t.players[i+1:]...)
+			// 清除玩家所在的游戏指针
+			p.SetGame(nil)
+			// 触发钩子
+			t.Trigger(constant.GAME_LEAVED_PLYAER)
+			// 给玩家清除钩子
+			t.clearPlayerHooks(p)
+			return
 		}
 	}
 }
 
 // 能否开局
 func (t *Game) CanStart() bool {
-	return len(t.players) == 3
+	// 3个玩家才能开始游戏
+	if len(t.players) != 3 {
+		return false
+	}
+	// 玩家要准备好了才能开始游戏
+	for _, p := range t.players {
+		if p.GetState() != constant.Already {
+			return false
+		}
+	}
+	return true
+}
+
+// 遍历玩家
+func (t *Game) MapPlayers(cb func(k int, p constant.PlayerInterface)) {
+	for k, v := range t.players {
+		cb(k, v)
+	}
 }
 
 // 洗牌
 func (t *Game) Shuffle() {
-	t.state = Started
 	for _, p := range t.players {
 		p.NotCall()   // 初始都不叫地主
 		p.SetFarmer() // 都变成农民
 		p.Clear()     //清空手牌
 	}
 	t.lordCards = []*cards.Card{}
+
+	if t.debug {
+		return
+	}
 	t.cardsBoot.Init().Shuffle()
 }
 
@@ -92,13 +190,17 @@ func (t *Game) Licensing() {
 	}
 
 	// 给玩家的牌排序
-	for _, p := range t.players {
-		p.SortCards()
+	if t.isSortCards {
+		for _, p := range t.players {
+			p.SortCards()
+		}
 	}
 
 	for boot.HasNext() {
 		t.lordCards = append(t.lordCards, boot.Next())
 	}
+
+	t.Trigger(constant.GAME_CARDS_CHANGED) // 触发洗完牌的钩子
 }
 
 func (t *Game) Display() {
@@ -110,8 +212,21 @@ func (t *Game) Display() {
 	fmt.Println(tmp)
 }
 
+// 把出牌权给地主
+func (t *Game) ChangeTurn2Lord() {
+	for i, p := range t.players {
+		if p.IsLord() {
+			t.curIndex = int8(i)
+		}
+	}
+}
+
 // 叫地主
 func (t *Game) CallLandlord() bool {
+	if t.isCalledLoard == true {
+		return false
+	}
+
 	// 获取叫了地主的玩家
 	called := []constant.PlayerInterface{}
 	for _, p := range t.players {
@@ -128,50 +243,76 @@ func (t *Game) CallLandlord() bool {
 	rand.Seed(time.Now().Unix()) // initialize global pseudo random generator
 	lord := called[rand.Intn(len(called))]
 
-	// 设置地主先出跑
-	for i, p := range t.players {
-		if p.IsLord() {
-			t.curIndex = int8(i)
-		}
-	}
-
 	lord.AcceptCards(t.lordCards...)
 	lord.SetLord()
-	lord.SortCards()
+	if t.isSortCards {
+		lord.SortCards()
+	}
+
+	t.isCalledLoard = true
+	// 设置游戏状态
+	t.SetState(constant.GameCalled)
 	return true
 }
 
-// 出牌
+// 出牌,
 func (t *Game) DealCards(c []*cards.Card) error {
+	// 如果一轮下来，其他玩家都不出牌, 当前牌型变any
+	played := []constant.PlayerInterface{}
+	isPre := false
+	t.MapPlayers(func(k int, p constant.PlayerInterface) {
+		if p.GetPlayedCards() != nil {
+			played = append(played, p)
+		}
+	})
+	if len(played) == 1 {
+		if played[0].GetName() == t.GetCurPlayer().GetName() {
+			t.curCards = compare.NewAnyCards()
+			isPre = true
+		}
+	}
+
 	// 当前的牌模式 和 玩家出的牌模式是否相同
 	pattern := GetCardsPattern(c...)
 	obj := ConvertCards(pattern, c)
 
-	// 玩家放弃出牌
-	if pattern == compare.NullPattern {
+	// 如果场上的牌是任意类型
+	if pattern == constant.AnyPattern && !isPre {
+		t.curCards = obj
+		t.GetCurPlayer().SetPlayedCards(obj)
+		t.Trigger(constant.GAME_PLAYER_PLAYED_CARDS)
 		t.Turn()
 		return nil
 	}
 
-	// 当前局没有炸弹，如果牌型不匹配
-	if t.curPattern != compare.BoomCardsPattern &&
-		pattern != compare.BoomCardsPattern &&
-		t.curPattern != compare.NullPattern &&
-		!t.curCards.IsSamePattern(obj) {
-		return errors.New("U dealed mismatched cards type: " + pattern.ToString())
+	// 如果场上是任意牌类型，玩家选择不出
+	if t.curCards.GetPattern() == constant.AnyPattern && pattern == constant.NullPattern {
+		return errors.New(t.GetCurPlayer().GetName() + " must deal cards.")
 	}
 
-	// 当前局没有炸弹，玩家出的牌是否比场上的牌大
-	if t.curPattern != compare.BoomCardsPattern &&
-		pattern != compare.BoomCardsPattern &&
-		t.curPattern != compare.NullPattern &&
+	// 玩家放弃出牌
+	if pattern == constant.NullPattern {
+		t.GetCurPlayer().SetPlayedCards(nil)
+		t.Trigger(constant.GAME_PLAYER_PLAYED_CARDS)
+		t.Turn()
+		return nil
+	}
+
+	// 如果牌型不匹配
+	if t.curCards.GetPattern() != constant.NullPattern &&
+		!t.curCards.IsSamePattern(obj) &&
+		obj.GetPattern() != constant.BoomCardsPattern {
+		return errors.New("U dealed mismatched cards type: " + t.GetCards().GetPattern().ToString() + " and " + pattern.ToString())
+	}
+
+	// 玩家出的牌是否比场上的牌大
+	if t.curCards.GetPattern() != constant.NullPattern &&
 		!obj.IsGreater(t.curCards) {
 		return errors.New("U should deal greater than last player's cards: " + cards.NewCardsList(t.curCards.GetCards()...).ToString())
 	}
 
-	// 如果场上有炸弹，就比较炸弹
-	// 如果当前没有炸弹，就直接炸弹
-	if t.curPattern == compare.BoomCardsPattern && !obj.IsGreater(t.curCards) {
+	// 比较牌
+	if !obj.IsGreater(t.curCards) {
 		return errors.New("U should deal greater than last player's cards: " + cards.NewCardsList(t.curCards.GetCards()...).ToString())
 	}
 
@@ -182,12 +323,14 @@ func (t *Game) DealCards(c []*cards.Card) error {
 	}
 	// 如果玩家出完牌，游戏结束
 	if !p.HasCards() {
-		t.state = End
+		t.SetState(constant.GameEnd)
 		return nil
 	}
 	// 出牌成功, 则设置 curPattern 和 curCards
-	t.curPattern = pattern
 	t.curCards = obj
+
+	t.GetCurPlayer().SetPlayedCards(obj)
+	t.Trigger(constant.GAME_PLAYER_PLAYED_CARDS)
 
 	t.Turn()
 	return nil
@@ -199,6 +342,8 @@ func (t *Game) Turn() {
 		t.curIndex = -1
 	}
 	t.curIndex++
+	// 触发钩子
+	t.Trigger(constant.GAME_TURN_CHANGED, t.state)
 }
 
 // 获取当前有出牌权的玩家
@@ -242,4 +387,17 @@ func (t *Game) CompareCards(c []*cards.Card) bool {
 	// c
 
 	return true
+}
+
+// 把player给hooked
+func (t *Game) hookPlayer(p constant.PlayerInterface) {
+	cb := func(args ...interface{}) {
+		t.Trigger(constant.GAME_PLAYER_STATE_CHANGED)
+	}
+	p.On(constant.PLAYER_STATE_CHANGED, cb)
+}
+
+// 清除玩家的钩子
+func (t *Game) clearPlayerHooks(p constant.PlayerInterface) {
+	p.Off(constant.PLAYER_STATE_CHANGED)
 }

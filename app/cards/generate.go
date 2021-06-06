@@ -9,12 +9,14 @@ import (
 
 // 一共54张牌
 type CardsBoot struct {
-	list [54]*Card
+	list    [54]*Card // 所有牌
+	randNum int       // 随机洗牌系数
 }
 
 func NewCardsBoot() *CardsBoot {
 	return &CardsBoot{
-		list: [54]*Card{},
+		list:    [54]*Card{},
+		randNum: 1,
 	}
 }
 
@@ -49,10 +51,13 @@ func (t *CardsBoot) Shuffle() error {
 		fmt.Print()
 		return errors.New("Pls call Init method first. ")
 	}
+
 	rand.Seed(time.Now().UnixNano())
-	rand.Shuffle(len(t.list), func(i, j int) {
-		t.list[i], t.list[j] = t.list[j], t.list[i]
-	})
+	for i := 0; i < t.randNum; i++ {
+		rand.Shuffle(len(t.list), func(i, j int) {
+			t.list[i], t.list[j] = t.list[j], t.list[i]
+		})
+	}
 	return nil
 }
 

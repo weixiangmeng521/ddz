@@ -2,6 +2,7 @@ package compare
 
 import (
 	c "ddz/app/cards"
+	"ddz/app/constant"
 )
 
 // 是不是合法三不带
@@ -17,7 +18,7 @@ var IsValidThreeCards = func(cards ...*c.Card) bool {
 
 // 三不带
 type ThreeCards struct {
-	pattern CardsPattern
+	pattern constant.CardsPattern
 	cards   []*c.Card
 }
 
@@ -27,7 +28,7 @@ func NewThreeCards(cards ...*c.Card) *ThreeCards {
 	}
 	return &ThreeCards{
 		cards:   cards,
-		pattern: ThreeCardsPattern,
+		pattern: constant.ThreeCardsPattern,
 	}
 }
 
@@ -35,16 +36,24 @@ func (t *ThreeCards) GetCards() []*c.Card {
 	return t.cards
 }
 
-func (t *ThreeCards) GetPattern() CardsPattern {
+func (t *ThreeCards) GetPattern() constant.CardsPattern {
 	return t.pattern
 }
 
-func (t *ThreeCards) IsSamePattern(ci CardsCompareInterface) bool {
+func (t *ThreeCards) IsSamePattern(ci constant.CardsCompareInterface) bool {
 	return t.GetPattern() == ci.GetPattern()
 }
 
 // 三不带比较大小
-func (t *ThreeCards) IsGreater(ci CardsCompareInterface) bool {
+func (t *ThreeCards) IsGreater(ci constant.CardsCompareInterface) bool {
+	if len(ci.GetCards()) == 0 { // for any pattern
+		return true
+	}
+
+	if ci.GetPattern() == constant.BoomCardsPattern {
+		return false
+	}
+
 	cur := getSize(t.cards[0].Value)
 	tar := getSize(ci.GetCards()[0].Value)
 	if cur == -1 || tar == -1 {

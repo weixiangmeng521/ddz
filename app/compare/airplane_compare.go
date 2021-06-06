@@ -2,6 +2,7 @@ package compare
 
 import (
 	c "ddz/app/cards"
+	"ddz/app/constant"
 )
 
 // 是不是飞机
@@ -58,7 +59,7 @@ var IsValidAirplane = func(cards ...*c.Card) bool {
 // 炸弹比较
 type ValidAirplaneCards struct {
 	cards   []*c.Card
-	pattern CardsPattern
+	pattern constant.CardsPattern
 }
 
 func NewValidAirplaneCards(cards ...*c.Card) *ValidAirplaneCards {
@@ -67,7 +68,7 @@ func NewValidAirplaneCards(cards ...*c.Card) *ValidAirplaneCards {
 	}
 	return &ValidAirplaneCards{
 		cards:   MostSort(cards),
-		pattern: AirplanePattern,
+		pattern: constant.AirplanePattern,
 	}
 }
 
@@ -75,18 +76,27 @@ func (t *ValidAirplaneCards) GetCards() []*c.Card {
 	return t.cards
 }
 
-func (t *ValidAirplaneCards) GetPattern() CardsPattern {
+func (t *ValidAirplaneCards) GetPattern() constant.CardsPattern {
 	return t.pattern
 }
 
-func (t *ValidAirplaneCards) IsSamePattern(ci CardsCompareInterface) bool {
+func (t *ValidAirplaneCards) IsSamePattern(ci constant.CardsCompareInterface) bool {
 	if len(t.cards) != len(ci.GetCards()) {
 		return false
 	}
 	return t.GetPattern() == ci.GetPattern()
 }
 
-func (t *ValidAirplaneCards) IsGreater(ci CardsCompareInterface) bool {
+func (t *ValidAirplaneCards) IsGreater(ci constant.CardsCompareInterface) bool {
+	if len(ci.GetCards()) == 0 { // for any pattern
+		return true
+	}
+
+	// for boom
+	if ci.GetPattern() == constant.BoomCardsPattern {
+		return false
+	}
+
 	cur := getSize(t.GetCards()[0].Value)
 	tar := getSize(ci.GetCards()[0].Value)
 	if cur == -1 || tar == -1 {

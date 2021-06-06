@@ -2,18 +2,17 @@ package scene
 
 import (
 	"ddz/app/constant"
-	"ddz/app/players"
 )
 
 // 游戏玩家
-var Players = []constant.PlayerInterface{
-	players.NewPlayer("Kenny"),
-	players.NewPlayer("Kyle"),
-	players.NewPlayer("Cartman"),
-}
+// var Players = []constant.PlayerInterface{
+// 	players.NewPlayer("Kenny"),
+// 	players.NewPlayer("Kyle"),
+// 	players.NewPlayer("Cartman"),
+// }
 
 // 初始化
-func CreateSceneFlow(g constant.GameInterface) {
+func CreateSceneFlow(g constant.GameInterface) *SceneFlow {
 	t := NewSceneFlow(g)
 	t.AddHandler(StartGame)
 	t.AddHandler(ShuffleCards)
@@ -22,4 +21,5 @@ func CreateSceneFlow(g constant.GameInterface) {
 	t.AddHandler(GoodGame)
 	t.Reset()
 	t.Start()
+	return t
 }

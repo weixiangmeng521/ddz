@@ -58,8 +58,8 @@ func isSpecialCard(value string) bool {
 
 // 卡牌
 type Card struct {
-	Value string
-	Type  CardType
+	Value string   `json:"value"`
+	Type  CardType `json:"type"`
 }
 
 func NewCard(v string, t CardType) *Card {
@@ -93,4 +93,9 @@ func (t *Card) ToString() string {
 // 是否等于
 func (t *Card) IsEqual(card *Card) bool {
 	return t.Value == card.Value && t.Type == card.Type
+}
+
+// 是不是值相同
+func (t *Card) IsValueEqual(card *Card) bool {
+	return t.Value == card.Value
 }

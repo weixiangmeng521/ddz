@@ -1,20 +1,41 @@
 package scene
 
-// 开局
+import (
+	"ddz/app/constant"
+)
+
+// 游戏开局
+// 玩家在房间等待，等到3个人
+// 等所有玩家状态是already，就开始游戏
 var StartGame = func(cxt *SceneFlow) {
 	g := cxt.GetGame()
 
-	// ? 玩家加入游戏, 现在只是模拟
-	for _, p := range Players {
-		cxt.Log(p.GetName() + " joined games.")
-		g.JoinPlayer(p)
+	// 清空钩子
+	clearHooks := func() {
+		g.Off(constant.GAME_JOINED_PLYAER)
+		g.Off(constant.GAME_PLAYER_STATE_CHANGED)
 	}
-	// 玩家不满，无法开始游戏
-	if !g.CanStart() {
-		cxt.Err("cannot start game, because lack of players.")
-		cxt.Redo()
-		return
-	}
-	cxt.Info("Game started successfully.")
-	cxt.Next()
+
+	// 加入游戏时触发
+	g.On(constant.GAME_JOINED_PLYAER, func(i ...interface{}) {
+	})
+
+	// 玩家状态改变时触发
+	g.On(constant.GAME_PLAYER_STATE_CHANGED, func(i ...interface{}) {
+		if g.CanStart() {
+			cxt.Info("Room [%s] created started successfully.", cxt.game.GetName())
+			clearHooks()
+			cxt.Next()
+		}
+	})
+
+	// 当某个玩家离开游戏
+	g.On(constant.GAME_PLAYER_LEAVED, func(i ...interface{}) {
+		// 如果游戏在准备阶段，直接无视玩家退出
+		if g.GetState() == constant.GameReady {
+			return
+		}
+
+		cxt.End()
+	})
 }

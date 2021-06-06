@@ -3,26 +3,66 @@ package players
 import (
 	c "ddz/app/cards"
 	"ddz/app/compare"
+	"ddz/app/constant"
+	"ddz/app/scene"
 	"errors"
 	"strings"
 )
 
 // 玩家
 type Player struct {
-	hasCalledLord bool // 是否叫地主
-	name          string
-	role          RoleType
-	cards         []*c.Card // 农民17张牌，地主20张，地主需要抢地主
+	hasCalledLord bool                           // 是否叫地主
+	room          string                         // 玩家所属房间名
+	name          string                         //玩家名称
+	role          constant.RoleType              // 玩家角色
+	state         constant.StateType             // 玩家状态
+	playedCards   constant.CardsCompareInterface // 玩家出的牌
+	cards         []*c.Card                      // 农民17张牌，地主20张，地主需要抢地主
+	game          constant.GameInterface         // 玩家所在的游戏
+	scene.Hooks
 }
 
 // 创建一个player
 func NewPlayer(name string) *Player {
 	return &Player{
 		hasCalledLord: false,
+		state:         constant.Waiting,
 		name:          name,
-		role:          Farmer,
+		room:          "",
+		role:          constant.Farmer,
 		cards:         []*c.Card{},
 	}
+}
+
+// 设置玩家所在的游戏指针
+func (t *Player) SetGame(g constant.GameInterface) {
+	t.game = g
+}
+
+// 获取玩家所在的游戏指针
+func (t *Player) GetGame() constant.GameInterface {
+	return t.game
+}
+
+// 设置玩家状态
+func (t *Player) SetState(s constant.StateType) {
+	t.state = s
+	t.Trigger(constant.PLAYER_STATE_CHANGED, s)
+}
+
+// 获取状态
+func (t *Player) GetState() constant.StateType {
+	return t.state
+}
+
+// 设置玩家房间
+func (t *Player) SetRoom(s string) {
+	t.room = s
+}
+
+// 获取玩家房间名
+func (t *Player) GetRoom() string {
+	return t.room
 }
 
 // 叫地主
@@ -47,22 +87,22 @@ func (t *Player) GetName() string {
 
 // 把农民变成地主
 func (t *Player) SetLord() {
-	t.role = Lord
+	t.role = constant.Lord
 }
 
 // 把玩家变成农民
 func (t *Player) SetFarmer() {
-	t.role = Farmer
+	t.role = constant.Farmer
 }
 
 // 是不是地主
 func (t *Player) IsLord() bool {
-	return t.role == Lord
+	return t.role == constant.Lord
 }
 
 // 是不是龙鸣
 func (t *Player) IsFarmer() bool {
-	return t.role == Lord
+	return t.role == constant.Lord
 }
 
 // 接收牌
@@ -70,6 +110,16 @@ func (t *Player) AcceptCards(cards ...*c.Card) {
 	for _, card := range cards {
 		t.cards = append(t.cards, card)
 	}
+}
+
+// 设置当前出的牌
+func (t *Player) SetPlayedCards(cp constant.CardsCompareInterface) {
+	t.playedCards = cp
+}
+
+// 获取当前出的牌
+func (t *Player) GetPlayedCards() constant.CardsCompareInterface {
+	return t.playedCards
 }
 
 // 出牌
@@ -120,6 +170,11 @@ func (t *Player) CheckCards() string {
 		arr = append(arr, v.ToString())
 	}
 	return strings.Join(arr, ",")
+}
+
+// 获取牌
+func (t *Player) GetCards() []*c.Card {
+	return t.cards
 }
 
 // 清空手牌

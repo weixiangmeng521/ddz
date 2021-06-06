@@ -3,61 +3,60 @@ package games
 import (
 	c "ddz/app/cards"
 	"ddz/app/compare"
+	"ddz/app/constant"
 )
 
 var (
-	cardsMap = map[compare.CardsPattern]func(cards ...*c.Card) bool{}
+	cardsMap = map[constant.CardsPattern]func(cards ...*c.Card) bool{
+		constant.BoomCardsPattern:           compare.IsValidBoom,
+		constant.SinglePattren:              compare.IsValidSingle,
+		constant.CoupleCardsPattern:         compare.IsValidCouple,
+		constant.ThreeCardsPattern:          compare.IsValidThreeCards,
+		constant.ThreeBeltOneCardsPattern:   compare.IsValidThreeBeltOneCards,
+		constant.ThreeBeltTwoCardsPattern:   compare.IsValidThreeBeltTwoCards,
+		constant.StraightCardsPattern:       compare.IsValidStraight,
+		constant.StraightCoupleCardsPattern: compare.IsValidStraightCouple,
+		constant.StraightThreeCardsPattern:  compare.IsValidStraightThree,
+		constant.FourBeltTwoPattern:         compare.IsValidFourBeltTwo,
+		constant.AirplanePattern:            compare.IsValidAirplane,
+	}
 )
 
-func init() {
-	cardsMap[compare.BoomCardsPattern] = compare.IsValidBoom
-	cardsMap[compare.SinglePattren] = compare.IsValidSingle
-	cardsMap[compare.CoupleCardsPattern] = compare.IsValidCouple
-	cardsMap[compare.ThreeCardsPattern] = compare.IsValidThreeCards
-	cardsMap[compare.ThreeBeltOneCardsPattern] = compare.IsValidThreeBeltOneCards
-	cardsMap[compare.ThreeBeltTwoCardsPattern] = compare.IsValidThreeBeltTwoCards
-	cardsMap[compare.StraightCardsPattern] = compare.IsValidStraight
-	cardsMap[compare.StraightCoupleCardsPattern] = compare.IsValidStraightCouple
-	cardsMap[compare.StraightThreeCardsPattern] = compare.IsValidStraightThree
-	cardsMap[compare.FourBeltTwoPattern] = compare.IsValidFourBeltTwo
-	cardsMap[compare.AirplanePattern] = compare.IsValidAirplane
-}
-
 // 获取牌的类型
-func GetCardsPattern(c ...*c.Card) compare.CardsPattern {
+func GetCardsPattern(c ...*c.Card) constant.CardsPattern {
 	for k, fn := range cardsMap {
 		if fn(c...) {
 			return k
 		}
 	}
-	return compare.NullPattern
+	return constant.NullPattern
 }
 
 // 获取 卡牌对象
-func ConvertCards(pattern compare.CardsPattern, cards []*c.Card) compare.CardsCompareInterface {
-	var obj compare.CardsCompareInterface
+func ConvertCards(pattern constant.CardsPattern, cards []*c.Card) constant.CardsCompareInterface {
+	var obj constant.CardsCompareInterface
 	switch pattern {
-	case compare.BoomCardsPattern:
+	case constant.BoomCardsPattern:
 		obj = compare.NewBoomCards(cards...)
-	case compare.SinglePattren:
+	case constant.SinglePattren:
 		obj = compare.NewSingleCard(cards...)
-	case compare.CoupleCardsPattern:
+	case constant.CoupleCardsPattern:
 		obj = compare.NewCoupleCards(cards...)
-	case compare.ThreeCardsPattern:
+	case constant.ThreeCardsPattern:
 		obj = compare.NewThreeCards(cards...)
-	case compare.ThreeBeltOneCardsPattern:
+	case constant.ThreeBeltOneCardsPattern:
 		obj = compare.NewThreeBeltOneCards(cards...)
-	case compare.ThreeBeltTwoCardsPattern:
+	case constant.ThreeBeltTwoCardsPattern:
 		obj = compare.NewThreeBeltTwoCards(cards...)
-	case compare.StraightCardsPattern:
+	case constant.StraightCardsPattern:
 		obj = compare.NewStraightCards(cards...)
-	case compare.StraightCoupleCardsPattern:
+	case constant.StraightCoupleCardsPattern:
 		obj = compare.NewStraightCoupleCards(cards...)
-	case compare.StraightThreeCardsPattern:
+	case constant.StraightThreeCardsPattern:
 		obj = compare.NewStraightThreeCards(cards...)
-	case compare.FourBeltTwoPattern:
+	case constant.FourBeltTwoPattern:
 		obj = compare.NewFourBeltTwoCards(cards...)
-	case compare.AirplanePattern:
+	case constant.AirplanePattern:
 		obj = compare.NewValidAirplaneCards(cards...)
 	}
 	return obj

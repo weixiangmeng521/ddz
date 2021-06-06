@@ -8,7 +8,7 @@ import (
 )
 
 func TestNewGame(t *testing.T) {
-	g := NewGame()
+	g := NewGame("test")
 	g.JoinPlayer(players.NewPlayer("Kenny"))
 	g.JoinPlayer(players.NewPlayer("Kyle"))
 	g.JoinPlayer(players.NewPlayer("Cartman"))

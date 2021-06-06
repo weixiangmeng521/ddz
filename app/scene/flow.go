@@ -48,6 +48,21 @@ func (t *SceneFlow) Redo() {
 	t.handlers[t.cur](t)
 }
 
+// 进入上一个环节
+func (t *SceneFlow) Prev() {
+	if t.cur-1 < 0 {
+		return
+	}
+	t.cur--
+	t.handlers[t.cur](t)
+}
+
+// 直接结束
+func (t *SceneFlow) End() {
+	t.cur = int8(len(t.handlers) - 1)
+	t.handlers[t.cur](t)
+}
+
 // 开始启用这个SceneFlow
 func (t *SceneFlow) Start() {
 	if len(t.handlers) == 0 {

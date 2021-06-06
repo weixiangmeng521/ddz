@@ -1,6 +1,9 @@
 package compare
 
-import c "ddz/app/cards"
+import (
+	c "ddz/app/cards"
+	"ddz/app/constant"
+)
 
 // 四张带两张：四张一样的牌+两张单牌。(注意：四带二不是炸弹)。如：4444+65
 var IsValidFourBeltTwo = func(cards ...*c.Card) bool {
@@ -49,7 +52,7 @@ var IsValidFourBeltTwo = func(cards ...*c.Card) bool {
 
 type FourBeltTwoCards struct {
 	cards   []*c.Card
-	pattern CardsPattern
+	pattern constant.CardsPattern
 }
 
 func NewFourBeltTwoCards(cards ...*c.Card) *FourBeltTwoCards {
@@ -58,7 +61,7 @@ func NewFourBeltTwoCards(cards ...*c.Card) *FourBeltTwoCards {
 	}
 	return &FourBeltTwoCards{
 		cards:   MostSort(cards),
-		pattern: FourBeltTwoPattern,
+		pattern: constant.FourBeltTwoPattern,
 	}
 }
 
@@ -66,11 +69,11 @@ func (t *FourBeltTwoCards) GetCards() []*c.Card {
 	return t.cards
 }
 
-func (t *FourBeltTwoCards) GetPattern() CardsPattern {
+func (t *FourBeltTwoCards) GetPattern() constant.CardsPattern {
 	return t.pattern
 }
 
-func (t *FourBeltTwoCards) IsSamePattern(ci CardsCompareInterface) bool {
+func (t *FourBeltTwoCards) IsSamePattern(ci constant.CardsCompareInterface) bool {
 	if t.GetPattern() != ci.GetPattern() { // 是不是姊妹对
 		return false
 	}
@@ -80,7 +83,15 @@ func (t *FourBeltTwoCards) IsSamePattern(ci CardsCompareInterface) bool {
 	return true
 }
 
-func (t *FourBeltTwoCards) IsGreater(ci CardsCompareInterface) bool {
+func (t *FourBeltTwoCards) IsGreater(ci constant.CardsCompareInterface) bool {
+	if len(ci.GetCards()) == 0 { // for any pattern
+		return true
+	}
+
+	if ci.GetPattern() == constant.BoomCardsPattern {
+		return false
+	}
+
 	cur := getSize(t.GetCards()[0].Value)
 	tar := getSize(ci.GetCards()[0].Value)
 	if cur == -1 || tar == -1 {

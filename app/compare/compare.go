@@ -5,50 +5,6 @@ import (
 	"fmt"
 )
 
-type CardsPattern int32
-
-// 牌的pattern
-const (
-	NullPattern                CardsPattern = iota // 无效的pattern
-	BoomCardsPattern                               // 炸弹
-	SinglePattren                                  // 单张
-	CoupleCardsPattern                             // 对子
-	ThreeCardsPattern                              // 三不带
-	ThreeBeltOneCardsPattern                       // 三带一
-	ThreeBeltTwoCardsPattern                       // 三带二
-	StraightCardsPattern                           // 顺子
-	StraightCoupleCardsPattern                     // 姊妹对
-	StraightThreeCardsPattern                      // 三顺
-	FourBeltTwoPattern                             // 四带二
-	AirplanePattern                                // 飞机
-)
-
-func (t CardsPattern) ToString() string {
-	m := map[CardsPattern]string{
-		NullPattern:                "NullPattern",
-		BoomCardsPattern:           "BoomCardsPattern",
-		SinglePattren:              "SinglePattren",
-		CoupleCardsPattern:         "CoupleCardsPattern",
-		ThreeCardsPattern:          "ThreeCardsPattern",
-		ThreeBeltOneCardsPattern:   "ThreeBeltOneCardsPattern",
-		ThreeBeltTwoCardsPattern:   "ThreeBeltTwoCardsPattern",
-		StraightCardsPattern:       "StraightCardsPattern",
-		StraightCoupleCardsPattern: "StraightCoupleCardsPattern",
-		StraightThreeCardsPattern:  "StraightThreeCardsPattern",
-		FourBeltTwoPattern:         "FourBeltTwoPattern",
-		AirplanePattern:            "AirplanePattern",
-	}
-	return m[t]
-}
-
-// 前置操作， 比较牌时，检查牌是否合法
-type CardsCompareInterface interface {
-	GetCards() []*c.Card
-	GetPattern() CardsPattern
-	IsSamePattern(CardsCompareInterface) bool
-	IsGreater(CardsCompareInterface) bool
-}
-
 // 关系大小的List
 var relateList = []string{"3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A", "2", "Jack"}
 
@@ -114,7 +70,7 @@ func MostSort(cards []*c.Card) []*c.Card {
 // 是不是这些牌面值相等
 func IsCardsEqual(cards ...*c.Card) bool {
 	for i := 1; i < len(cards); i++ {
-		if !cards[i-1].IsEqual(cards[i]) {
+		if !cards[i-1].IsValueEqual(cards[i]) {
 			return false
 		}
 	}

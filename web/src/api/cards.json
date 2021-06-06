@@ -1,0 +1,90 @@
+{
+    "hideCards": {
+      "DjR78gFGWH__YnG7p1ih": 17,
+      "SBuWhDAQtDF8_wGoJlHs": 17
+    },
+    "myCards": [
+      {
+        "value": "J",
+        "type": 2
+      },
+      {
+        "value": "J",
+        "type": 0
+      },
+      {
+        "value": "J",
+        "type": 3
+      },
+      {
+        "value": "4",
+        "type": 1
+      },
+      {
+        "value": "4",
+        "type": 3
+      },
+      {
+        "value": "5",
+        "type": 1
+      },
+      {
+        "value": "6",
+        "type": 3
+      },
+      {
+        "value": "7",
+        "type": 1
+      },
+      {
+        "value": "8",
+        "type": 3
+      },
+      {
+        "value": "8",
+        "type": 0
+      },
+      {
+        "value": "9",
+        "type": 3
+      },
+      {
+        "value": "9",
+        "type": 0
+      },
+      {
+        "value": "10",
+        "type": 2
+      },
+      {
+        "value": "K",
+        "type": 2
+      },
+      {
+        "value": "2",
+        "type": 0
+      },
+      {
+        "value": "2",
+        "type": 2
+      },
+      {
+        "value": "Jack",
+        "type": 4
+      }
+    ],
+    "lordCards": [
+      {
+        "value": "5",
+        "type": 0
+      },
+      {
+        "value": "3",
+        "type": 1
+      },
+      {
+        "value": "Jack",
+        "type": 5
+      }
+    ]
+}
