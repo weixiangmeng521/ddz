@@ -8,18 +8,39 @@ import (
 	gosocketio "github.com/graarh/golang-socketio"
 )
 
-// 获取玩家状态列表
-func getPlayersStatus(c *gosocketio.Channel) map[string]string {
-	m := map[string]string{}
-	p := GetPlayer(c)
-	if p == nil {
-		return m
+// 设置用户名
+// ! 暂时模拟获取用户名
+var SetName = func(c *gosocketio.Channel, i interface{}) error {
+	// if i == nil {
+	msg := NewMessage()
+	info := GetConnInfo(c)
+	if info == nil {
+		c.Emit("name:set", msg.Error())
+		return nil
 	}
-	g := hubs.GetRoom(p.GetRoom())
-	g.MapPlayers(func(i int, v constant.PlayerInterface) {
-		m[v.GetName()] = v.GetState().ToString()
-	})
-	return m
+	info.SetName(c.Id())
+	c.Emit("name:set", msg.Success())
+	return nil
+
+	// msg := ParseMessage(i)
+	// info := GetConnInfo(c)
+	// if info == nil {
+	// 	c.Emit("name:set", msg.Error())
+	// 	return nil
+	// }
+	// info.SetName(msg.GetData().(string))
+
+	// msg = NewMessage()
+	// c.Emit("name:set", msg.Success())
+	// return nil
+}
+
+// 获取房间列表
+var GameList = func(c *gosocketio.Channel, i interface{}) error {
+	msg := NewMessage().Success()
+	msg.SetData(hubs.List())
+	c.Emit("game:list", msg)
+	return nil
 }
 
 // 游戏 api

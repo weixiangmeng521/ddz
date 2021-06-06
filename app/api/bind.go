@@ -2,6 +2,8 @@ package api
 
 import (
 	"ddz/app/constant"
+	"ddz/app/games"
+	h "ddz/app/hub"
 	"ddz/app/players"
 	"fmt"
 
@@ -48,6 +50,7 @@ func init() {
 		}
 	}()
 
+	createRooms()
 }
 
 // 获取连接的额外信息
@@ -144,4 +147,55 @@ func GetGame(c *gosocketio.Channel) constant.GameInterface {
 	}
 	r := p.GetRoom()
 	return hubs.GetRoom(r)
+}
+
+// 获取玩家状态列表
+func getPlayersStatus(c *gosocketio.Channel) map[string]string {
+	m := map[string]string{}
+	p := GetPlayer(c)
+	if p == nil {
+		return m
+	}
+	g := hubs.GetRoom(p.GetRoom())
+	g.MapPlayers(func(i int, v constant.PlayerInterface) {
+		m[v.GetName()] = v.GetState().ToString()
+	})
+	return m
+}
+
+// *** 房间
+var (
+	hubs = h.NewRoom()
+)
+
+// ? 模拟建房
+// 绑定钩子
+func createRooms() {
+	createRoom("test1")
+	createRoom("test2")
+}
+
+func createRoom(name string) {
+	hubs.CreateRoom(name, games.NewGame(name))
+}
+
+// 玩家提前离场，有钩子会触发
+func LeaveRoom(c *gosocketio.Channel) {
+	g := GetGame(c)
+	if g != nil {
+		g.Trigger(constant.GAME_PLAYER_LEAVED, GetPlayer(c))
+	}
+
+	DelConnInfo(c) // 删除连接信息
+	p := GetPlayer(c)
+	DelPlayer(c, p) // 删除玩家身份
+	if p == nil {
+		return
+	}
+	//删除游戏中的玩家
+	r := p.GetRoom()
+	if r != "" {
+		g := hubs.GetRoom(r)
+		g.LeavePlayer(p)
+	}
 }
