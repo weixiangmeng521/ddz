@@ -1,4 +1,4 @@
-牌型大小：初始默认大小2>A>K>Q>J>10>....>4>3，牌型大小只有在同一组合中分大小。王炸都比任何牌大，数字大的炸弹比数字小的炸弹大。
+#### 牌型大小：初始默认大小2>A>K>Q>J>10>....>4>3，牌型大小只有在同一组合中分大小。王炸都比任何牌大，数字大的炸弹比数字小的炸弹大。
     1、王炸：也就是大小王、最大的牌，最大的炸弹。
     2、炸弹：四张同数值牌，如AAAA这种牌。
     3、四张带两张：四张一样的牌+两张单牌。(注意：四带二不是炸弹)。如：4444+65
@@ -20,3 +20,11 @@
 Socket-io
     server 
     github.com/graarh/golang-socketio
+
+#### 前端交互flow
+    name:set
+    game:list 
+    game:join
+    game:wait || game:ready
+    [sub] cards:changed && game:options
+    game:deal
