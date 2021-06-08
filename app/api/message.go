@@ -1,6 +1,7 @@
 package api
 
 import (
+	"ddz/app/cards"
 	"encoding/json"
 	"fmt"
 )
@@ -80,6 +81,39 @@ func ParseMessage(i interface{}) (msg *Message) {
 	}
 	if err := json.Unmarshal(b, &msg); err != nil {
 		fmt.Println("Unmarshall err: ", err)
+		return
+	}
+	return
+}
+
+// cards info
+type PlayCardsData struct {
+	Type   string        `json:"type"`
+	Option string        `json:"option"`
+	Cards  []*cards.Card `json:"cards"`
+}
+
+// 解析出牌的信息
+func ParsePlayCardsMessage(i interface{}) {
+	var b []byte
+	switch i.(type) {
+	case string:
+		b = []byte(i.(string))
+	case []byte:
+		b = i.([]byte)
+	case map[string]interface{}:
+		b, _ = json.Marshal(i)
+	default:
+		fmt.Println(i, " it's not string type.")
+		return
+	}
+
+	msg := &struct {
+		Data *PlayCardsData `json:"data"`
+		*Message
+	}{}
+
+	if err := json.Unmarshal(b, &msg); err != nil {
 		return
 	}
 	return

@@ -50,7 +50,7 @@ var JoinGame = func(c *gosocketio.Channel, i interface{}) error {
 	game := hubs.GetRoom(r)
 
 	if game.GetState() != constant.GameReady {
-		c.Emit("game:join", msg.Error().SetMessage("game is runing now. u cannot join."))
+		c.Emit("game:join", msg.Error().SetMessage("game is runing now. u cannot join. state: "+game.GetState().ToString()))
 		return nil
 	}
 
@@ -250,7 +250,7 @@ var GameDeal = func(c *gosocketio.Channel, i interface{}) error {
 
 		// 获取牌
 		if tp == "play" && g.GetState() == constant.GameCalled {
-
+			msg.GetData()
 		}
 
 		// 出牌

@@ -128,10 +128,10 @@ func (t *Game) LeavePlayer(p constant.PlayerInterface) {
 			t.players = append(t.players[:i], t.players[i+1:]...)
 			// 清除玩家所在的游戏指针
 			p.SetGame(nil)
-			// 触发钩子
-			t.Trigger(constant.GAME_LEAVED_PLYAER)
 			// 给玩家清除钩子
 			t.clearPlayerHooks(p)
+			// 触发钩子
+			t.Trigger(constant.GAME_LEAVED_PLYAER)
 			return
 		}
 	}
@@ -348,6 +348,10 @@ func (t *Game) Turn() {
 
 // 获取当前有出牌权的玩家
 func (t *Game) GetCurPlayer() constant.PlayerInterface {
+	if len(t.players) < 3 {
+		fmt.Println("Game has been over, because game dont have 3 player enough.")
+		return nil
+	}
 	return t.players[t.curIndex]
 }
 
@@ -371,6 +375,7 @@ func (t *Game) GetWiners() []constant.PlayerInterface {
 }
 
 // 是不是游戏结束了
+// ? 这里有两种情况，一种是提前结束，一种是完美结束
 func (t *Game) HasGoodGame() bool {
 	for _, p := range t.players {
 		if p.HasWinned() {
@@ -400,4 +405,31 @@ func (t *Game) hookPlayer(p constant.PlayerInterface) {
 // 清除玩家的钩子
 func (t *Game) clearPlayerHooks(p constant.PlayerInterface) {
 	p.Off(constant.PLAYER_STATE_CHANGED)
+}
+
+// 重开游戏
+func (t *Game) Restart() {
+	// t.Clear()
+	// g = &Game{
+	// 	name:          name,
+	// 	cardsBoot:     cards.NewCardsBoot(),
+	// 	players:       []constant.PlayerInterface{},
+	// 	lordCards:     []*cards.Card{},
+	// 	curIndex:      0,
+	// 	curCards:      compare.NewAnyCards(),
+	// 	debug:         false,
+	// 	isCalledLoard: false,
+	// 	state:         constant.GameReady,
+	// 	hooks:         map[constant.GameHookType][]func(...interface{}){},
+	// 	isSortCards:   false,
+	// }
+
+	t.players = []constant.PlayerInterface{}
+	t.lordCards = []*cards.Card{}
+	t.curIndex = 0
+	t.curCards = compare.NewAnyCards()
+	t.isCalledLoard = false
+	t.state = constant.GameReady
+	t.isSortCards = false
+
 }

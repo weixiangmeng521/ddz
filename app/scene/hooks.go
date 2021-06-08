@@ -45,6 +45,11 @@ func (t *Hooks) Off(name string) {
 	t.hooks[name] = []func(...interface{}){}
 }
 
+// 清除全部的钩子
+func (t *Hooks) Clear() {
+	t.hooks = nil
+}
+
 // 触发钩子
 func (t *Hooks) Trigger(name string, args ...interface{}) {
 	t.init()

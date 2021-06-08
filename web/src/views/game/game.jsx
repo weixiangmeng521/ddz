@@ -101,7 +101,7 @@ class Game extends React.Component {
                 this.setState({ 
                     mode: res.type, 
                     playerButtons: res.options
-                })
+                }), 100
             );
             fireTask()
 

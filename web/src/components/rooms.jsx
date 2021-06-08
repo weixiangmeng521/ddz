@@ -13,7 +13,7 @@ class Rooms extends React.Component{
     }
 
     getRoomList = () => {
-        const evt = "room:list";
+        const evt = "game:list";
         Socket.emit(evt, {})
         Socket.off(evt).on(evt, res => {
             this.setState({ list: res.data })
