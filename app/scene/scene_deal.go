@@ -7,6 +7,11 @@ import (
 
 // 开始出牌
 var DealCards = func(cxt *SceneFlow) {
+	// clearHooks := func(g constant.GameInterface) {
+	// 	g.Off(constant.GAME_PLAYER_PLAYED_CARDS)
+	// 	g.Off(constant.GAME_TURN_CHANGED)
+	// }
+
 	g := cxt.GetGame()
 	n := g.GetCurPlayer().GetName()
 	cxt.Warn("Land lord is %s", n)

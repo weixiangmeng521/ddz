@@ -1,6 +1,7 @@
 package api
 
 import (
+	"ddz/app/cards"
 	"ddz/app/constant"
 	"ddz/app/players"
 	"fmt"
@@ -223,6 +224,9 @@ var GameDeal = func(c *gosocketio.Channel, i interface{}) error {
 		fmt.Println("Nil pointer err: GetGame")
 		return nil
 	}
+	if g.GetCurPlayer() == nil {
+		return nil
+	}
 	// 给出牌玩家操作
 	if g.GetCurPlayer().GetName() == GetPlayer(c).GetName() {
 		m := msg.Data.(map[string]interface{})
@@ -243,26 +247,36 @@ var GameDeal = func(c *gosocketio.Channel, i interface{}) error {
 			g.Turn()
 		}
 
-		// 响应叫地主
-		if tp == "call" {
-			c.Emit("game:deal", NewMessage().Success())
-		}
-
-		// 获取牌
-		if tp == "play" && g.GetState() == constant.GameCalled {
-			msg.GetData()
-		}
-
 		// 出牌
-		if tp == "play" && opt == "1" && g.GetState() == constant.GameCalled {
+		if tp == "play" && g.GetState() == constant.GameCalled && opt == "1" {
+			list := m["cards"].([]interface{})
+			cardsList := []*cards.Card{}
 
+			for _, item := range list {
+				card := item.(map[string]interface{})
+				cd := cards.NewCard(card["value"].(string), cards.CardType(card["type"].(float64)))
+				cardsList = append(cardsList, cd)
+			}
+
+			if err := g.DealCards(cardsList); err != nil {
+				c.Emit("game:deal", NewMessage().Error().SetMessage(err.Error()))
+				g.Trigger(constant.GAME_CARDS_CHANGED)
+				return nil
+			}
+			g.Trigger(constant.GAME_CARDS_CHANGED)
 		}
 
 		// 不出
-		if tp == "play" && opt == "0" && g.GetState() == constant.GameCalled {
-			// g.DealCards()
+		if tp == "play" && g.GetState() == constant.GameCalled && opt == "0" {
+			if err := g.DealCards([]*cards.Card{}); err != nil {
+				c.Emit("game:deal", NewMessage().Error().SetMessage(err.Error()))
+				g.Trigger(constant.GAME_CARDS_CHANGED)
+				return nil
+			}
+			g.Trigger(constant.GAME_CARDS_CHANGED)
 		}
 
+		c.Emit("game:deal", NewMessage().Success())
 		return nil
 	}
 

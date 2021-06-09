@@ -2,7 +2,8 @@ import React from "react"
 import { Socket } from "../../socket/socket";
 import ReadyState from "./state/ready"
 import Board from "./state/board"
-import { addEvents, fireTask } from "../../uitls/events_queue.ts"
+import Card from "../../components/card"
+import { sortDealCards } from "../../pocker/sort"
 
 // TODO: !!! 加心跳
 class Game extends React.Component {
@@ -19,7 +20,6 @@ class Game extends React.Component {
             
             mode: "", // 当前是叫地主，还是出牌
             playerButtons: {},
-
             // 选中的卡牌
             selectedCards: [],
         }
@@ -95,17 +95,13 @@ class Game extends React.Component {
     reciverGameOptions = () => {
         const evt = "game:options";
         Socket.emit(evt, {})
-        Socket.on(evt, res => {
-            // console.log(this.state);
-            addEvents(
-                this.setState({ 
-                    mode: res.type, 
-                    playerButtons: res.options
-                }), 100
-            );
-            fireTask()
-
-        })
+        Socket.on(evt, async res => {
+            if(this.state.mode === "call" && res.type === "play" && res.options.cannot_afford === "0"){
+                this.setState({ playerButtons: { cannot_afford: "0", play_cards: "1" } })
+                return
+            }
+            await new Promise(r => this.setState({ mode: res.type, playerButtons: res.options}, () => r()));
+        });
     }
 
     // 命名转化
@@ -125,21 +121,33 @@ class Game extends React.Component {
         });
         const res = await new Promise(r => Socket.on(evt, res => r(res)));
         if(res.code !== 1){
-            return console.log(res)
+            console.log(1);
+            return
         }
         this.setState({ playerButtons: {} })
     }
 
     // 出牌，不出
     dealCards = async (val) => {
-        if(val === "0") {
-            console.log("不出")
-        }else{
-            console.log("出牌")
+        const evt = "game:deal";
+        const params = {
+            data: {
+                type: "play",
+                option: val,
+                cards: this.state.selectedCards,
+            }
         }
-
-        this.setState({ playerButtons: {} })
+        Socket.emit(evt, params);
+        const res = await new Promise(r => Socket.on(evt, res => r(res)));
+        if(res.code !== 1){
+            console.log(res)
+            return
+        }
+        this.setState({ playerButtons: {}, selectedCards: []})
     }
+
+
+
 
     // 渲染叫地主，抢地主，出牌
     renderCallLord = () => {
@@ -162,11 +170,19 @@ class Game extends React.Component {
         return (<>{list}</>);
     }
 
+
+
+
+
+
     // 选择中的卡牌
     selectedCards = (list, setSelectedCards) => {
         this.setState({ selectedCards: list });
         this.setSelectedCards = setSelectedCards;
     }
+
+
+
 
 
     
@@ -189,7 +205,17 @@ class Game extends React.Component {
                 onSelectedCards={ this.selectedCards }
                 >
                 <div className="row justify-center-center">
-
+                    <div>
+                    {
+                        sortDealCards(this.state.cardsData.playedCards)
+                        .map((card,i) => 
+                            <Card 
+                            key={ i } 
+                            type={ String(card.type) } 
+                            value={ String(card.value) }
+                        />) 
+                    }
+                    </div>  
                 </div>
             </Board> : "" }
 

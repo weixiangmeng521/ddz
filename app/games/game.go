@@ -14,17 +14,16 @@ import (
 
 type Game struct {
 	name          string
-	cardsBoot     *cards.CardsBoot                                 // 牌靴
-	players       []constant.PlayerInterface                       // 游戏玩家
-	lordCards     []*cards.Card                                    // 地主的牌
-	curCards      constant.CardsCompareInterface                   // 当前的局面的牌
-	curIndex      int8                                             // 当前进行的玩家index
-	state         constant.GameState                               // 当前游戏状态
-	flow          *scene.SceneFlow                                 // 游戏进行流程
-	hooks         map[constant.GameHookType][]func(...interface{}) // 钩子
-	isCalledLoard bool                                             // 是否叫完地主
-	isSortCards   bool                                             // 是否洗牌
-	debug         bool                                             // 设置debug模式
+	cardsBoot     *cards.CardsBoot               // 牌靴
+	players       []constant.PlayerInterface     // 游戏玩家
+	lordCards     []*cards.Card                  // 地主的牌
+	curCards      constant.CardsCompareInterface // 当前的局面的牌
+	curIndex      int8                           // 当前进行的玩家index
+	state         constant.GameState             // 当前游戏状态
+	flow          *scene.SceneFlow               // 游戏进行流程
+	isCalledLoard bool                           // 是否叫完地主
+	isSortCards   bool                           // 是否洗牌
+	debug         bool                           // 设置debug模式
 
 	sync.Mutex  // 锁
 	scene.Hooks // 钩子
@@ -41,7 +40,6 @@ func NewGame(name string) (g *Game) {
 		debug:         false,
 		isCalledLoard: false,
 		state:         constant.GameReady,
-		hooks:         map[constant.GameHookType][]func(...interface{}){},
 		isSortCards:   false,
 	}
 	// 创建游戏，直接进入flow
@@ -276,6 +274,13 @@ func (t *Game) DealCards(c []*cards.Card) error {
 	pattern := GetCardsPattern(c...)
 	obj := ConvertCards(pattern, c)
 
+	fmt.Println(">>>>>>", pattern.ToString())
+
+	// 玩家瞎出牌
+	if len(c) != 0 && pattern == constant.NullPattern {
+		return errors.New("U deal untyped cards.")
+	}
+
 	// 如果场上的牌是任意类型
 	if pattern == constant.AnyPattern && !isPre {
 		t.curCards = obj
@@ -405,31 +410,4 @@ func (t *Game) hookPlayer(p constant.PlayerInterface) {
 // 清除玩家的钩子
 func (t *Game) clearPlayerHooks(p constant.PlayerInterface) {
 	p.Off(constant.PLAYER_STATE_CHANGED)
-}
-
-// 重开游戏
-func (t *Game) Restart() {
-	// t.Clear()
-	// g = &Game{
-	// 	name:          name,
-	// 	cardsBoot:     cards.NewCardsBoot(),
-	// 	players:       []constant.PlayerInterface{},
-	// 	lordCards:     []*cards.Card{},
-	// 	curIndex:      0,
-	// 	curCards:      compare.NewAnyCards(),
-	// 	debug:         false,
-	// 	isCalledLoard: false,
-	// 	state:         constant.GameReady,
-	// 	hooks:         map[constant.GameHookType][]func(...interface{}){},
-	// 	isSortCards:   false,
-	// }
-
-	t.players = []constant.PlayerInterface{}
-	t.lordCards = []*cards.Card{}
-	t.curIndex = 0
-	t.curCards = compare.NewAnyCards()
-	t.isCalledLoard = false
-	t.state = constant.GameReady
-	t.isSortCards = false
-
 }

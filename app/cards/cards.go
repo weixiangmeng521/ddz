@@ -24,3 +24,7 @@ func (t *CardsList) ToString() string {
 func (t *CardsList) Display() {
 	fmt.Println(t.ToString())
 }
+
+func (t *CardsList) Len() int {
+	return len(t.list)
+}

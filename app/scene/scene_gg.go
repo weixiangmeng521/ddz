@@ -6,16 +6,23 @@ import (
 
 // 结束
 var GoodGame = func(cxt *SceneFlow) {
+	// 清除钩子
+	// clearHooks := func(g constant.GameInterface) {
+	// 	g.Off(constant.GAME_PLAYER_LEAVED)
+	// }
+
 	g := cxt.GetGame()
 	g.SetState(constant.GameEnd)
 
 	cxt.Log("good game.")
 
 	g.On(constant.GAME_PLAYER_LEAVED, func(i ...interface{}) {
-		cxt.Warn("GAME_PLAYER_LEAVED")
 		if IsEmptyGame(g) {
 			cxt.Info("game restart agin.")
-			g.Restart()
+
+			// TODO: 销毁房间，然后重建
+			g.Trigger(constant.GAME_REBUILD, g)
+			// clearHooks(g)
 		}
 	})
 

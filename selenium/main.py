@@ -16,11 +16,10 @@ def join_game():
 
     browser.implicitly_wait(8)
     calllord_btn = browser.find_element_by_xpath('//*[@id="root"]/div/div[4]/div/button[1]')
-    # calllord_btn = WebDriverWait(browser, 10).until(EC.presence_of_all_elements_located(By.XPATH, '//*[@id="root"]/div/div[4]/div/button[1]'))
     calllord_btn.click()
 
 
-    time.sleep(10)
+    time.sleep(90)
 
 
 if __name__ == "__main__":

@@ -2,6 +2,7 @@ package hub
 
 import (
 	"ddz/app/constant"
+	"ddz/app/games"
 	"sync"
 )
 
@@ -28,6 +29,7 @@ func (t *Room) CreateRoom(name string, g constant.GameInterface) {
 	t.Lock()
 	defer t.Unlock()
 	t.set[name] = g
+	t.bindDestory()
 	t.trigger(Created, name)
 }
 
@@ -35,6 +37,7 @@ func (t *Room) CreateRoom(name string, g constant.GameInterface) {
 func (t *Room) DelRoom(name string) {
 	t.Lock()
 	defer t.Unlock()
+	t.bindDestory()
 	delete(t.set, name)
 	t.trigger(Removed, name)
 }
@@ -85,3 +88,27 @@ func (t *Room) trigger(name string, arg string) {
 		fn(arg)
 	}
 }
+
+func (t *Room) bindDestory() {
+	for _, g := range t.set {
+		g.Off(constant.GAME_REBUILD)
+		g.On(constant.GAME_REBUILD, t.onRebuild)
+	}
+
+}
+
+// 重新建房
+func (t *Room) onRebuild(i ...interface{}) {
+	if len(i) != 1 {
+		return
+	}
+	g := i[0].(constant.GameInterface)
+	for _, v := range t.set {
+		if v.GetName() == g.GetName() {
+			t.DelRoom(g.GetName())
+		}
+	}
+	t.CreateRoom(g.GetName(), games.NewGame(g.GetName()))
+}
+
+// GAME_DESTORY
