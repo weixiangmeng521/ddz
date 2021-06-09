@@ -1,3 +1,11 @@
+## 斗地主
+1. 斗地主是什么？
+    https://zh.wikipedia.org/wiki/%E9%AC%A5%E5%9C%B0%E4%B8%BB
+2. 为什么要做斗地主？
+    某砖家说：“长期斗地主有益身心健康”
+3. 本项目做了哪些？
+    本项目主要业务逻辑集中在后台，玩家叫地主，出牌，比牌，等等。。。前台写得很粗糙。有心人可以fork下来代码，用不同语言来实现斗地主的界面。
+
 #### 牌型大小：初始默认大小2>A>K>Q>J>10>....>4>3，牌型大小只有在同一组合中分大小。王炸都比任何牌大，数字大的炸弹比数字小的炸弹大。
     1、王炸：也就是大小王、最大的牌，最大的炸弹。
     2、炸弹：四张同数值牌，如AAAA这种牌。
@@ -11,15 +19,18 @@
     10、单对：数值相同的两张牌，如AA或者22这种双牌。
     11、单牌：单个牌，单张出牌即是单牌。
 
- From: https://zhidao.baidu.com/question/630346354503276484.html
+    From: https://zhidao.baidu.com/question/630346354503276484.html
 
 
-前端 REACT
-    https://github.com/microsoft/TypeScript-React-Starter
+#### 技术栈 
 
-Socket-io
-    server 
-    github.com/graarh/golang-socketio
+    前端 REACT
+    1. https://github.com/microsoft/TypeScript-React-Starter
+    2. Socket-io v2
+
+    后端 Golang
+    1. Socket-io
+    2. github.com/graarh/golang-socketio
 
 #### 前端交互flow
     name:set
@@ -28,3 +39,7 @@ Socket-io
     game:wait || game:ready
     [sub] cards:changed && game:options
     game:deal
+
+#### 测试
+    在selenium目录下，运行python进行测试
+
