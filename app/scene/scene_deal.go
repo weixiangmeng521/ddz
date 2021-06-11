@@ -7,11 +7,6 @@ import (
 
 // 开始出牌
 var DealCards = func(cxt *SceneFlow) {
-	// clearHooks := func(g constant.GameInterface) {
-	// 	g.Off(constant.GAME_PLAYER_PLAYED_CARDS)
-	// 	g.Off(constant.GAME_TURN_CHANGED)
-	// }
-
 	g := cxt.GetGame()
 	n := g.GetCurPlayer().GetName()
 	cxt.Warn("Land lord is %s", n)
@@ -22,14 +17,18 @@ var DealCards = func(cxt *SceneFlow) {
 	ForceUpdateGameTurnChanged(g)
 
 	g.On(constant.GAME_PLAYER_PLAYED_CARDS, func(i ...interface{}) {
-		// playedCards := g.GetPlayedCards()
 		cp := g.GetCurPlayer().GetPlayedCards()
 		if cp != nil {
 			cxt.Info("%s >>> [%s]: %s", g.GetCurPlayer().GetName(), cp.GetPattern().ToString(), cards.NewCardsList(cp.GetCards()...).ToString())
 			return
 		}
 		cxt.Info("%s >>> not play", g.GetCurPlayer().GetName())
-
+		// 如果游戏正常结束
+		if g.HasGoodGame() {
+			cxt.Info("Good Gome...")
+			cxt.Next()
+			return
+		}
 	})
 
 	// return

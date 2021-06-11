@@ -7,6 +7,7 @@ func init() {
 	bind("game:ready", ReadyGame)
 	bind("game:wait", WaitGame)
 	bind("game:options", GameOptions)
+	bind("game:options[confirm]", GameOptionsConfirm)
 	bind("game:deal", GameDeal)
 	bind("cards:changed", CardsChanged)
 }

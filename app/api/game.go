@@ -4,6 +4,7 @@ import (
 	"ddz/app/cards"
 	"ddz/app/constant"
 	"ddz/app/players"
+	"errors"
 	"fmt"
 
 	gosocketio "github.com/graarh/golang-socketio"
@@ -187,7 +188,6 @@ var GameOptions = func(c *gosocketio.Channel, i interface{}) error {
 			fmt.Println("nil pointer err: GetConnInfo || game.GetCurPlayer")
 			return
 		}
-
 		// 叫地主时
 		if GetConnInfo(c).GetName() == p.GetName() && state == constant.GameStarted {
 			c.Emit("game:options", NewPlayerOptions().SetCallLord())
@@ -209,6 +209,29 @@ var GameOptions = func(c *gosocketio.Channel, i interface{}) error {
 		}
 	})
 
+	return nil
+}
+
+// game:options的确认
+var GameOptionsConfirm = func(c *gosocketio.Channel, i interface{}) error {
+	g := GetGame(c)
+	if g == nil {
+		return errors.New("game nil pointer err.")
+	}
+	p := g.GetCurPlayer()
+	if p == nil {
+		return errors.New("player nil pointer err.")
+	}
+	if GetPlayer(c) != nil && GetPlayer(c).GetName() == p.GetName() {
+		if g.GetState() == constant.GameCalled {
+			c.Emit("game:options[confirm]", NewPlayerOptions().SetPlayCards())
+		}
+	}
+	if GetPlayer(c) != nil && GetPlayer(c).GetName() != p.GetName() {
+		if g.GetState() == constant.GameCalled {
+			c.Emit("game:options[confirm]", NewPlayerOptions().Clear())
+		}
+	}
 	return nil
 }
 

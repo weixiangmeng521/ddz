@@ -101,8 +101,18 @@ class Game extends React.Component {
                 return
             }
             await new Promise(r => this.setState({ mode: res.type, playerButtons: res.options}, () => r()));
+            res.type === "play" && this.confirmOptions()
         });
     }
+
+    confirmOptions = async () => {
+        const evt = "game:options[confirm]";
+        Socket.emit(evt, {});
+        const res = await new Promise(r => Socket.on(evt, async res => r(res)));
+        this.setState({ playerButtons: res.options })
+        Socket.off(evt);
+    }
+
 
     // 命名转化
     convertStr = (s) => {
