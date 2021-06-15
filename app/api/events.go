@@ -9,5 +9,6 @@ func init() {
 	bind("game:options", GameOptions)
 	bind("game:options[confirm]", GameOptionsConfirm)
 	bind("game:deal", GameDeal)
+	bind("game:good_game", GoodGame)
 	bind("cards:changed", CardsChanged)
 }

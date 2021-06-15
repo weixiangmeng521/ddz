@@ -306,3 +306,25 @@ var GameDeal = func(c *gosocketio.Channel, i interface{}) error {
 	c.Emit("game:deal", NewMessage().Error().SetMessage("It's not your turn."))
 	return nil
 }
+
+// 游戏结束
+var GoodGame = func(c *gosocketio.Channel, i interface{}) error {
+	g := GetGame(c)
+	if g == nil {
+		return errors.New("Nil pointer Game.")
+	}
+
+	g.On(constant.GAME_OVER, func(i ...interface{}) {
+		ps := g.GetWiners()
+		mapper := map[string]bool{}
+
+		g.MapPlayers(func(i int, pi constant.PlayerInterface) {
+			mapper[pi.GetName()] = false
+		})
+		for _, p := range ps {
+			mapper[p.GetName()] = true
+		}
+		c.Emit("game:good_game", NewMessage().Success().SetData(mapper))
+	})
+	return nil
+}

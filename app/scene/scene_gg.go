@@ -9,7 +9,11 @@ var GoodGame = func(cxt *SceneFlow) {
 	g := cxt.GetGame()
 	g.SetState(constant.GameEnd)
 
-	cxt.Log("good game.")
+	cxt.Info("good game.")
+	for _, p := range g.GetWiners() {
+		cxt.Info("winner[%s]\n", p.GetName())
+	}
+	g.Trigger(constant.GAME_OVER)
 
 	g.On(constant.GAME_PLAYER_LEAVED, func(i ...interface{}) {
 		// 如果玩家走完了就重开

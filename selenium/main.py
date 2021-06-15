@@ -10,7 +10,7 @@ import time
 def join_game(num):
     browser = webdriver.Chrome()
     browser.implicitly_wait(8)
-    browser.get('http://localhost:3000/game/test1')
+    browser.get('http://localhost:3000/game/test2')
     ready_btn = browser.find_element_by_xpath('//*[@id="root"]/div/div/div/button[2]')
     ready_btn.click()
 
@@ -19,15 +19,16 @@ def join_game(num):
     calllord_btn = browser.find_element_by_xpath('//*[@id="root"]/div/div[4]/div/button[1]')
     calllord_btn.click()
 
-    time.sleep(3)
+    time.sleep(1)
     
     while True:
-        if num == 0:
+        if browser.find_element_by_xpath('//*[@id="root"]/div/div[5]/p/span').value_of_css_property('color') == "rgba(255, 255, 255, 1)": 
             browser.find_element_by_xpath('//*[@id="root"]/div/div[5]/img[1]').click()
             browser.find_element_by_xpath('//*[@id="root"]/div/div[4]/div/button[2]').click()
         else:
-            browser.find_elements_by_xpath('//*[@id="root"]/div/div[4]/div/button[1]').click()
-        time.sleep(1)
+            browser.find_element_by_xpath('//*[@id="root"]/div/div[4]/div/button[1]').click()
+
+        time.sleep(0.3)
 
 
 if __name__ == "__main__":

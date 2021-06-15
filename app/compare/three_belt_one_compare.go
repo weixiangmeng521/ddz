@@ -10,6 +10,10 @@ var IsValidThreeBeltOneCards = func(cards ...*c.Card) bool {
 	if len(cards) != 4 {
 		return false
 	}
+	// 排除炸弹
+	if IsCardsEqual(cards...) {
+		return false
+	}
 	res := MostSort(cards)
 	if !IsCardsEqual(res[:3]...) {
 		return false

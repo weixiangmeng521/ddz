@@ -12,6 +12,7 @@ const (
 	GAME_STATE_CHANGED        = "GAME_STATE_CHANGED"        // 游戏状态发生变化
 	GAME_PLAYER_LEAVED        = "GAME_PLAYER_LEAVED"        // 当游戏里面某个玩家离开房间
 	GAME_PLAYER_PLAYED_CARDS  = "GAME_PLAYER_PLAYED_CARDS"  // 玩家出完牌后
+	GAME_OVER                 = "GAME_OVER"                 // 游戏结束
 	GAME_REBUILD              = "GAME_REBUILD"              // 游戏被销毁
 )
 

@@ -50,7 +50,7 @@ func NewStraightCards(cards ...*c.Card) *StraightCards {
 	}
 	return &StraightCards{
 		cards:   SortCards(cards),
-		pattern: constant.SinglePattren,
+		pattern: constant.StraightCardsPattern,
 	}
 }
 

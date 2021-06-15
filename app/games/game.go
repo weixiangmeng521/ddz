@@ -16,6 +16,7 @@ type Game struct {
 	name          string
 	cardsBoot     *cards.CardsBoot               // 牌靴
 	players       []constant.PlayerInterface     // 游戏玩家
+	winners       []constant.PlayerInterface     // 赢家
 	lordCards     []*cards.Card                  // 地主的牌
 	curCards      constant.CardsCompareInterface // 当前的局面的牌
 	curIndex      int8                           // 当前进行的玩家index
@@ -41,6 +42,7 @@ func NewGame(name string) (g *Game) {
 		isCalledLoard: false,
 		state:         constant.GameReady,
 		isSortCards:   false,
+		winners:       []constant.PlayerInterface{},
 	}
 	// 创建游戏，直接进入flow
 	g.flow = scene.CreateSceneFlow(g)
@@ -274,7 +276,7 @@ func (t *Game) DealCards(c []*cards.Card) error {
 	pattern := GetCardsPattern(c...)
 	obj := ConvertCards(pattern, c)
 
-	fmt.Println(">>>>>>", pattern.ToString())
+	// fmt.Println(">>>>>>", pattern.ToString())
 
 	// 玩家瞎出牌
 	if len(c) != 0 && pattern == constant.NullPattern {
@@ -283,7 +285,13 @@ func (t *Game) DealCards(c []*cards.Card) error {
 
 	// 如果场上的牌是任意类型
 	if pattern == constant.AnyPattern && !isPre {
+		// 出牌
+		p := t.GetCurPlayer()
+		if err := p.DealCards(c...); err != nil {
+			return err
+		}
 		t.curCards = obj
+		// 设置游戏场上当前的牌
 		t.GetCurPlayer().SetPlayedCards(obj)
 		t.Trigger(constant.GAME_PLAYER_PLAYED_CARDS)
 		t.Turn()
@@ -322,15 +330,11 @@ func (t *Game) DealCards(c []*cards.Card) error {
 	}
 
 	// 是否出牌成功
-	p := t.players[t.curIndex]
+	p := t.GetCurPlayer()
 	if err := p.DealCards(c...); err != nil {
 		return err
 	}
-	// 如果玩家出完牌，游戏结束
-	if !p.HasCards() {
-		t.SetState(constant.GameEnd)
-		return nil
-	}
+
 	// 出牌成功, 则设置 curPattern 和 curCards
 	t.curCards = obj
 
@@ -362,28 +366,55 @@ func (t *Game) GetCurPlayer() constant.PlayerInterface {
 
 // 获取游戏赢家
 func (t *Game) GetWiners() []constant.PlayerInterface {
-	if !t.players[t.curIndex].HasCards() {
-		// 地主赢
-		if t.players[t.curIndex].IsLord() {
-			return []constant.PlayerInterface{t.players[t.curIndex]}
-		}
-		// 农民赢
-		winer := []constant.PlayerInterface{}
+	if len(t.winners) != 0 {
+		return t.winners
+	}
+
+	// 如果有提前离开的玩家
+	if len(t.players) < 3 {
+		// 如果里面有地主，地主就赢
 		for _, p := range t.players {
-			if !p.IsLord() {
-				winer = append(winer, p)
+			if p.IsLord() {
+				t.winners = []constant.PlayerInterface{p}
+				return []constant.PlayerInterface{p}
 			}
 		}
-		return winer
+		// 如果没有地主，只有农民，农民赢
+		ps := []constant.PlayerInterface{}
+		for _, p := range t.players {
+			ps = append(ps, p)
+		}
+		t.winners = ps
+		return ps
 	}
-	return nil
+
+	// 正常游戏结束
+	lord := []constant.PlayerInterface{}
+	farmers := []constant.PlayerInterface{}
+
+	// 地主和农民归类
+	for _, p := range t.players {
+		if p.IsLord() {
+			lord = append(lord, p)
+			if len(p.GetCards()) == 0 {
+				t.winners = lord
+				return lord
+			}
+		}
+		if p.IsFarmer() {
+			farmers = append(farmers, p)
+		}
+	}
+	t.winners = farmers
+	return farmers
 }
 
-// 是不是游戏结束了
-// ? 这里有两种情况，一种是提前结束，一种是完美结束
+// 是不是游戏完美结束了
 func (t *Game) HasGoodGame() bool {
 	for _, p := range t.players {
+		// fmt.Println("<><><>:", len(p.GetCards()))
 		if p.HasWinned() {
+			t.SetState(constant.GameEnd)
 			return true
 		}
 	}

@@ -1,6 +1,7 @@
 import React from "react"
 import { Socket } from "../../socket/socket";
 import ReadyState from "./state/ready"
+import Result from "./state/result"
 import Board from "./state/board"
 import Card from "../../components/card"
 import { sortDealCards } from "../../pocker/sort"
@@ -22,6 +23,8 @@ class Game extends React.Component {
             playerButtons: {},
             // 选中的卡牌
             selectedCards: [],
+            // 胜利榜单
+            winnerBoard: {},
         }
     }
 
@@ -48,6 +51,7 @@ class Game extends React.Component {
         // 订阅卡牌
         this.reciverGameCards()
         this.reciverGameOptions()
+        this.reciverGoodGame()
     }
 
     // 等待游戏
@@ -73,16 +77,13 @@ class Game extends React.Component {
         ["game:ready", "game:wait", "game:join"].map((v, i) => Socket.on(v, cb))
     }
 
-    // 开始游戏后获取牌
+    //  [订阅] 开始游戏后获取牌
     reciverGameCards = () => {
         const evt = "cards:changed";
         Socket.emit(evt, {})
         Socket.on(evt, res => {
             // debugger
-            this.setState({ 
-                state: 1, 
-                cardsData: res.data,
-            })
+            this.setState({ state: 1, cardsData: res.data })
             // 清除之前的绑定
             const evts = ["game:ready", "game:wait", "game:join"];
             evts.map(v => Socket.off(v));       
@@ -104,6 +105,17 @@ class Game extends React.Component {
             res.type === "play" && this.confirmOptions()
         });
     }
+
+
+    // [订阅] 游戏结束
+    reciverGoodGame = () => {
+        const evt = "game:good_game";
+        Socket.emit(evt, {})
+        Socket.on(evt, async res => {
+            await new Promise(r => this.setState({ state: 3, winnerBoard: res.data }, () => r("")));
+        });
+    }
+
 
     confirmOptions = async () => {
         const evt = "game:options[confirm]";
@@ -130,10 +142,7 @@ class Game extends React.Component {
             }
         });
         const res = await new Promise(r => Socket.on(evt, res => r(res)));
-        if(res.code !== 1){
-            console.log(1);
-            return
-        }
+        if(res.code !== 1)return
         this.setState({ playerButtons: {} })
     }
 
@@ -225,9 +234,17 @@ class Game extends React.Component {
                             value={ String(card.value) }
                         />) 
                     }
+
+
+                    <Result className={this.state.state === 3 ? "d-block" : " d-none"}
+                        data={this.state.winnerBoard}>
+                    </Result>
+                    
                     </div>  
                 </div>
             </Board> : "" }
+            
+
 
 
 

@@ -20,12 +20,12 @@ var DealCards = func(cxt *SceneFlow) {
 		cp := g.GetCurPlayer().GetPlayedCards()
 		if cp != nil {
 			cxt.Info("%s >>> [%s]: %s", g.GetCurPlayer().GetName(), cp.GetPattern().ToString(), cards.NewCardsList(cp.GetCards()...).ToString())
-			return
 		}
-		cxt.Info("%s >>> not play", g.GetCurPlayer().GetName())
+		if cp == nil {
+			cxt.Info("%s >>> not play", g.GetCurPlayer().GetName())
+		}
 		// 如果游戏正常结束
 		if g.HasGoodGame() {
-			cxt.Info("Good Gome...")
 			cxt.Next()
 			return
 		}
