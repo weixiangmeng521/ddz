@@ -37,7 +37,7 @@ unorderCards.forEach((v, i) => {
 })
 
 const getCardSource = (value, type) => {
-    if(value === "*" && type === "*"){
+    if(value === "*" || type === "*"){
         return getCard("noise").default;
     }
     const k = cardsType.concat(jackTypes)[Number(type)];

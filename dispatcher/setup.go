@@ -27,7 +27,7 @@ func CreateServer() {
 	serveMux.Handle("/ws/", server)
 
 	fmt.Println("Listening: localhost:9527")
-	log.Panic(http.ListenAndServe("localhost:9527", serveMux))
+	log.Panic(http.ListenAndServe("0.0.0.0:9527", serveMux))
 }
 
 // 玩家加入游戏

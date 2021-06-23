@@ -7,21 +7,20 @@ import (
 
 // 是不是炸弹
 var IsValidBoom = func(cards ...*c.Card) bool {
+	if len(cards) != 4 || len(cards) != 2 {
+		return false
+	}
 
 	// 双王炸弹
 	if len(cards) == 2 && IsCardsEqual(cards...) && cards[0].Value == "Jack" {
 		return true
 	}
-	// 四张牌的炸弹
-	if len(cards) != 4 {
-		return false
+
+	if len(cards) == 4 && IsCardsEqual(cards...) {
+		return true
 	}
-	for i := 1; i < 4; i++ {
-		if cards[i].Value != cards[i-1].Value {
-			return false
-		}
-	}
-	return true
+
+	return false
 }
 
 // 炸弹比较

@@ -78,6 +78,13 @@ func NewCard(v string, t CardType) *Card {
 	return &Card{v, t}
 }
 
+func NewNoiseCard() *Card {
+	return &Card{
+		Value: "*",
+		Type:  Spade,
+	}
+}
+
 func (t *Card) ToString() string {
 	mapper := map[CardType]string{
 		Spade:   "♠", // 黑桃

@@ -91,6 +91,9 @@ func (t *Game) GetPlayedCards() []*cards.Card {
 
 // 获取地主牌
 func (t *Game) GetLordCards() []*cards.Card {
+	if t.state == constant.GameStarted {
+		return []*cards.Card{cards.NewNoiseCard(), cards.NewNoiseCard(), cards.NewNoiseCard()}
+	}
 	return t.lordCards
 }
 

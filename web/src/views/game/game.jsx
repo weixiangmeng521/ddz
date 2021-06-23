@@ -235,7 +235,6 @@ class Game extends React.Component {
                         />) 
                     }
 
-
                     <Result className={this.state.state === 3 ? "d-block" : " d-none"}
                         data={this.state.winnerBoard}>
                     </Result>

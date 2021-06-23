@@ -19,8 +19,6 @@ def join_game(num):
     calllord_btn = browser.find_element_by_xpath('//*[@id="root"]/div/div[4]/div/button[1]')
     calllord_btn.click()
 
-    time.sleep(1)
-    
     while True:
         if browser.find_element_by_xpath('//*[@id="root"]/div/div[5]/p/span').value_of_css_property('color') == "rgba(255, 255, 255, 1)": 
             browser.find_element_by_xpath('//*[@id="root"]/div/div[5]/img[1]').click()

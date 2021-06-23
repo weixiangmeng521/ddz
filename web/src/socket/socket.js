@@ -1,6 +1,6 @@
 import io from 'socket.io-client';
 
-const uri = 'http://localhost:9527';
+const uri = 'http://192.168.1.7:9527';
 const options = {
     autoConnect: true,
     transports: ['websocket'],
